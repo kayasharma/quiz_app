@@ -39,15 +39,29 @@ export default function TakeQuizPage() {
 
   const fetchQuiz = async () => {
     try {
-      const response = await fetch(`/api/quizzes/${params.id}/public`)
-      const data = await response.json()
+      // Try demo quiz first
+      if (params.id === "quiz_demo") {
+        const response = await fetch("/api/quizzes/demo")
+        const data = await response.json()
 
-      if (response.ok) {
-        setQuiz(data.quiz)
+        if (response.ok) {
+          setQuiz(data.quiz)
+        } else {
+          setError(data.error || "Demo quiz not found")
+        }
       } else {
-        setError(data.error || "Quiz not found")
+        // Regular quiz
+        const response = await fetch(`/api/quizzes/${params.id}/public`)
+        const data = await response.json()
+
+        if (response.ok) {
+          setQuiz(data.quiz)
+        } else {
+          setError(data.error || "Quiz not found")
+        }
       }
     } catch (error) {
+      console.error("Error fetching quiz:", error)
       setError("Failed to load quiz")
     } finally {
       setLoading(false)
@@ -127,7 +141,12 @@ export default function TakeQuizPage() {
     return (
       <div className="student-quiz-container">
         <Container maxWidth="md" sx={{ py: 8 }}>
-          <Alert severity="error">{error}</Alert>
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+          <Button variant="contained" onClick={() => router.push("/")}>
+            Back to Home
+          </Button>
         </Container>
       </div>
     )

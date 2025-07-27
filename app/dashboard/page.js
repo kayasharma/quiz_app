@@ -25,6 +25,9 @@ import {
   IconButton,
   Paper,
   CircularProgress,
+  Menu,
+  MenuList,
+  ListItemIcon,
 } from "@mui/material"
 import { motion } from "framer-motion"
 import {
@@ -36,9 +39,10 @@ import {
   IconShare,
   IconTrash,
   IconUpload,
+  IconEdit,
+  IconChevronDown,
 } from "@tabler/icons-react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 
 // Simple session hook
 function useSession() {
@@ -84,6 +88,7 @@ export default function TeacherDashboard() {
     totalAttempts: 0,
   })
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [createMenuAnchor, setCreateMenuAnchor] = useState(null)
   const [newQuiz, setNewQuiz] = useState({
     title: "",
     topic: "",
@@ -150,7 +155,6 @@ export default function TeacherDashboard() {
           difficulty: "medium",
           questionCount: 10,
         })
-        // Redirect to the quiz preview page
         router.push(`/quiz/create/${data.quizId}`)
       } else {
         const errorData = await response.json()
@@ -165,13 +169,15 @@ export default function TeacherDashboard() {
   }
 
   const handleDeleteQuiz = async (quizId) => {
-    try {
-      await fetch(`/api/quizzes/${quizId}`, {
-        method: "DELETE",
-      })
-      fetchQuizzes()
-    } catch (error) {
-      console.error("Error deleting quiz:", error)
+    if (confirm("Are you sure you want to delete this quiz?")) {
+      try {
+        await fetch(`/api/quizzes/${quizId}`, {
+          method: "DELETE",
+        })
+        fetchQuizzes()
+      } catch (error) {
+        console.error("Error deleting quiz:", error)
+      }
     }
   }
 
@@ -289,26 +295,9 @@ export default function TeacherDashboard() {
               </Typography>
               <Box>
                 <Button
-                  component={Link}
-                  href="/quiz/upload"
-                  variant="outlined"
-                  startIcon={<IconUpload />}
-                  sx={{
-                    mr: 2,
-                    color: "white",
-                    borderColor: "rgba(255,255,255,0.5)",
-                    "&:hover": {
-                      borderColor: "white",
-                      backgroundColor: "rgba(255,255,255,0.1)",
-                    },
-                  }}
-                >
-                  Upload Content
-                </Button>
-                <Button
                   variant="contained"
-                  startIcon={<IconPlus />}
-                  onClick={() => setCreateDialogOpen(true)}
+                  endIcon={<IconChevronDown />}
+                  onClick={(e) => setCreateMenuAnchor(e.currentTarget)}
                   sx={{
                     backgroundColor: "rgba(255,255,255,0.2)",
                     "&:hover": {
@@ -318,6 +307,47 @@ export default function TeacherDashboard() {
                 >
                   Create Quiz
                 </Button>
+                <Menu
+                  anchorEl={createMenuAnchor}
+                  open={Boolean(createMenuAnchor)}
+                  onClose={() => setCreateMenuAnchor(null)}
+                >
+                  <MenuList>
+                    <MenuItem
+                      onClick={() => {
+                        setCreateMenuAnchor(null)
+                        setCreateDialogOpen(true)
+                      }}
+                    >
+                      <ListItemIcon>
+                        <IconPlus size={20} />
+                      </ListItemIcon>
+                      AI Generated Quiz
+                    </MenuItem>
+                    <MenuItem
+                      onClick={() => {
+                        setCreateMenuAnchor(null)
+                        router.push("/quiz/upload")
+                      }}
+                    >
+                      <ListItemIcon>
+                        <IconUpload size={20} />
+                      </ListItemIcon>
+                      Upload Document
+                    </MenuItem>
+                    <MenuItem
+                      onClick={() => {
+                        setCreateMenuAnchor(null)
+                        router.push("/quiz/manual")
+                      }}
+                    >
+                      <ListItemIcon>
+                        <IconEdit size={20} />
+                      </ListItemIcon>
+                      Manual Creation
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
               </Box>
             </Box>
 
@@ -349,7 +379,7 @@ export default function TeacherDashboard() {
                           </Typography>
                           <Box mt={1}>
                             <Chip
-                              label={`${quiz.questions?.length || 0} Questions`}
+                              label={`${quiz.questionCount || 0} Questions`}
                               size="small"
                               sx={{ mr: 1, backgroundColor: "rgba(255,255,255,0.2)", color: "white" }}
                             />
@@ -382,7 +412,7 @@ export default function TeacherDashboard() {
 
         {/* Create Quiz Dialog */}
         <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Create New Quiz</DialogTitle>
+          <DialogTitle>Create AI Generated Quiz</DialogTitle>
           <DialogContent>
             <TextField
               fullWidth
