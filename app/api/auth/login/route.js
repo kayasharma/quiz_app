@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import jwt from "jsonwebtoken"
+import bcrypt from "bcrypt"
 import { query } from "@/lib/db"
 
 export async function POST(request) {
@@ -8,7 +9,10 @@ export async function POST(request) {
     const { email, password, role } = await request.json()
 
     // Find user in database
-    const result = await query("SELECT id, name, email, role FROM users WHERE email = $1 AND role = $2", [email, role])
+    const result = await query("SELECT id, name, email, role, password FROM users WHERE email = $1 AND role = $2", [
+      email,
+      role,
+    ])
 
     if (result.rows.length === 0) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
@@ -16,11 +20,10 @@ export async function POST(request) {
 
     const user = result.rows[0]
 
-    // In a real app, you should hash and compare passwords
-    // For now, we'll use a simple check
-    const passwordCheck = await query("SELECT password FROM users WHERE id = $1", [user.id])
+    // Securely compare the provided password with the stored hash
+    const passwordMatch = await bcrypt.compare(password, user.password)
 
-    if (passwordCheck.rows[0].password !== password) {
+    if (!passwordMatch) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import bcrypt from "bcrypt"
 import { query } from "@/lib/db"
 
 export async function POST(request) {
@@ -12,10 +13,14 @@ export async function POST(request) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 })
     }
 
-    // Insert new user
+    // Hash the password before storing it
+    const saltRounds = 10
+    const hashedPassword = await bcrypt.hash(password, saltRounds)
+
+    // Insert new user with the hashed password
     const result = await query(
       "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role",
-      [name, email, password, role], // In production, hash the password!
+      [name, email, hashedPassword, role],
     )
 
     const user = result.rows[0]
