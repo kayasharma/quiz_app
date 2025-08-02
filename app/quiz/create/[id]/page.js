@@ -261,7 +261,7 @@ export default function CreateQuizPage() {
               <Button variant="outlined" startIcon={<IconEye />} onClick={() => window.open(quizUrl, "_blank")}>
                 Preview Quiz
               </Button>
-              <Button variant="contained" startIcon={<IconShare />} onClick={handlePublishQuiz}>
+              <Button variant="contained" startIcon={<IconShare />}  onClick={() => copyQuizLink(quiz.id)}>
                 Publish & Share
               </Button>
             </Box>

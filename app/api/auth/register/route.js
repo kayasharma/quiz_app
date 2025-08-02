@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server"
-import bcrypt from "bcrypt"
 import { query } from "@/lib/db"
 
 export async function POST(request) {
@@ -13,26 +12,17 @@ export async function POST(request) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 })
     }
 
-    // Hash the password before storing it
-    const saltRounds = 10
-    const hashedPassword = await bcrypt.hash(password, saltRounds)
-
-    // Insert new user with the hashed password
+    // Store password as plain text (⚠ not recommended in production)
     const result = await query(
       "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role",
-      [name, email, hashedPassword, role],
+      [name, email, password, role]
     )
 
     const user = result.rows[0]
 
     return NextResponse.json({
       message: "Registration successful",
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      user,
     })
   } catch (error) {
     console.error("Registration error:", error)
