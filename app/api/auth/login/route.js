@@ -34,12 +34,9 @@ export async function POST(request) {
     }
 
     // 3️⃣ Sign JWT with correct secret
-    const secret = process.env.JWT_SECRET || "your-secret-key";
-    const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
-      secret,
-      { expiresIn: "24h" }
-    );
+   const secret = process.env.JWT_SECRET;
+if (!secret) throw new Error("JWT_SECRET is not set");
+const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, secret, { expiresIn: "24h" });
     console.log("🎫 JWT generated");
 
     // 4️⃣ Set cookie (cross-domain safe for production)
