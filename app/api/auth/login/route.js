@@ -40,15 +40,17 @@ const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, 
     console.log("🎫 JWT generated");
 
     // 4️⃣ Set cookie (cross-domain safe for production)
-    const cookieStore = cookies();
-    cookieStore.set("auth-token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // only secure in production
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' for cross-domain
-      maxAge: 60 * 60 * 24, // 1 day
-      path: "/",
-    });
-    console.log("🍪 Auth cookie set successfully");
+   // Update the cookie settings in your login route
+cookieStore.set("auth-token", token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production", // true in production
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  maxAge: 60 * 60 * 24, // 1 day
+  path: "/",
+domain: process.env.NODE_ENV === "production" ? 
+  new URL(process.env.NEXT_PUBLIC_APP_URL).hostname : 
+  undefined
+});
 
     // 5️⃣ Send response
     return NextResponse.json({

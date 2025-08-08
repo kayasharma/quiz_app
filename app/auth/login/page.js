@@ -24,35 +24,38 @@ export default function LoginPage() {
   }, [searchParams])
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-          credentials: "include", // ✅ important for cookies
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password, role }),
-      })
+  try {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      credentials: "include", // Important for cookies
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password, role }),
+    });
 
-      const data = await response.json()
+    const data = await response.json();
 
-      if (response.ok) {
-        login(data.user)
-        router.push(role === "teacher" ? "/dashboard" : "/student/dashboard")
-      } else {
-        setError(data.error || "Login failed")
-      }
-    } catch (error) {
-      setError("An error occurred during login")
-    } finally {
-      setLoading(false)
+    if (response.ok) {
+      login(data.user);
+      // Add a small delay to ensure cookie is set
+      setTimeout(() => {
+        router.push(role === "teacher" ? "/dashboard" : "/student/dashboard");
+      }, 100);
+    } else {
+      setError(data.error || "Login failed");
     }
+  } catch (error) {
+    console.error("Login error:", error);
+    setError("An error occurred during login");
+  } finally {
+    setLoading(false);
   }
-
+};
   return (
     <div className="quiz-container">
       <Container maxWidth="sm" sx={{ py: 8 }}>
